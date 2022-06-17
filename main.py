@@ -10,7 +10,7 @@ CATEGORY_ID=2
 STORE_ID=11
 
 MAIN_URL = f"http://prices.shufersal.co.il/FileObject/UpdateCategory?catID={CATEGORY_ID}&storeId={STORE_ID}"
-CSV_FILE = f"/Users/amitberger/Desktop/HST/ShufersalPricesTracker/price_track_{CATEGORY_ID}_{STORE_ID}.csv"
+CSV_FILE = f"price_track_{CATEGORY_ID}_{STORE_ID}.csv"
 
 def extrace_field(et, field):
     obj = et.find(field)
