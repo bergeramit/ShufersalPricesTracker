@@ -11,7 +11,7 @@ CATEGORY_ID = 2
 STORE_ID = 11
 
 MAIN_URL = f"http://prices.shufersal.co.il/FileObject/UpdateCategory?catID={CATEGORY_ID}&storeId={STORE_ID}"
-CSV_FILE = f"price_track_{CATEGORY_ID}_{STORE_ID}.csv"
+CSV_FILE = f"C:\\Users\\berge\OneDrive\\שולחן העבודה\\HST\\ShufersalPricesTracker\\price_track_{CATEGORY_ID}_{STORE_ID}.csv"
 
 
 def extrace_field(et, field):
@@ -39,6 +39,7 @@ def get_current_csv_table():
 
 def update_table():
     df = pd.read_csv(CSV_FILE, index_col=0)
+    df.ItemCode = df.ItemCode.astype(str)
     print(df)
     table, table_date = get_current_csv_table()
     
@@ -49,18 +50,18 @@ def update_table():
         name = extrace_field(item, "ItemName")
         price = extrace_field(item, "ItemPrice")
         code = extrace_field(item, "ItemCode")
-        current_index = df.index[df['ItemCode'] == int(code)]
+        current_index = df.index[df['ItemCode'] == code]
         try:
             df.at[current_index[0], table_date] = price
         except IndexError:
-            print(f"New item code: {int(code)} (name: {name}) price: {price}")
+            print(f"New item code: {code} (name: {name}) price: {price}")
             df.loc[df.shape[0]] = [None for _ in range(len(df.columns))]
-            df.at[df.shape[0]-1, "ItemCode"] = int(code)
+            df.at[df.shape[0]-1, "ItemCode"] = code
             df.at[df.shape[0]-1, "ItemName"] = name
             df.at[df.shape[0]-1, table_date] = price
             continue
 
-    df.to_csv(CSV_FILE)
+    df.to_csv(CSV_FILE, encoding='utf-8',)
 
 
 def new_table():
@@ -72,8 +73,9 @@ def new_table():
         df[table_date].append(extrace_field(item, "ItemPrice"))
         df["ItemCode"].append(extrace_field(item, "ItemCode"))
 
-    table = pd.DataFrame(df, columns=["ItemName", "ItemCode", table_date])
-    table.to_csv(CSV_FILE)
+    table = pd.DataFrame(df, columns=["ItemName", "ItemCode", table_date], dtype=str)
+    df.ItemCode = df.ItemCode.astype(str)
+    table.to_csv(CSV_FILE, encoding='utf-8')
 
 
 if __name__ == "__main__":
