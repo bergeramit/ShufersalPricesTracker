@@ -2,21 +2,24 @@ import requests
 import gzip
 from bs4 import BeautifulSoup
 from io import StringIO
+from IPython import embed
 from datetime import datetime
 import xml.etree.ElementTree as ET
 import pandas as pd
 
-CATEGORY_ID=2
-STORE_ID=11
+CATEGORY_ID = 2
+STORE_ID = 11
 
 MAIN_URL = f"http://prices.shufersal.co.il/FileObject/UpdateCategory?catID={CATEGORY_ID}&storeId={STORE_ID}"
 CSV_FILE = f"price_track_{CATEGORY_ID}_{STORE_ID}.csv"
+
 
 def extrace_field(et, field):
     obj = et.find(field)
     if obj is not None:
         return obj.text
     return ""
+
 
 def get_current_csv_table():
     res = requests.get(MAIN_URL)
@@ -29,8 +32,8 @@ def get_current_csv_table():
     res = requests.get(target)
     raw_csv = gzip.decompress(res.content)
     table = ET.parse(StringIO(raw_csv.decode('utf-8'))).getroot()
-    current_date = table.find("Items").find("Item").find("PriceUpdateDate").text
-    current_date = datetime.strptime(current_date, "%Y-%m-%d %H:%M").strftime("%Y-%m-%d")
+    date_td = soup.find_all("td")[1]
+    current_date = datetime.strptime(date_td.text, "%m/%d/%Y %I:%M:%S %p").strftime("%Y-%m-%d")
     return table, current_date
 
 
@@ -50,7 +53,11 @@ def update_table():
         try:
             df.at[current_index[0], table_date] = price
         except IndexError:
-            print(f"New item code: {int(code)} (name: {name})")
+            print(f"New item code: {int(code)} (name: {name}) price: {price}")
+            df.loc[df.shape[0]] = [None for _ in range(len(df.columns))]
+            df.at[df.shape[0]-1, "ItemCode"] = int(code)
+            df.at[df.shape[0]-1, "ItemName"] = name
+            df.at[df.shape[0]-1, table_date] = price
             continue
 
     df.to_csv(CSV_FILE)
